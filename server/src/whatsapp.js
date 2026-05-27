@@ -2,6 +2,27 @@
 
 const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode");
+const { execSync } = require("child_process");
+
+function findChromiumPath() {
+  // If explicitly set, use that
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  // Try to find chromium on PATH (works in nixpacks containers)
+  try {
+    const p = execSync("which chromium || which chromium-browser || which google-chrome-stable || which google-chrome", {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    }).trim();
+    if (p) {
+      console.log("Found browser at:", p);
+      return p;
+    }
+  } catch (_) {}
+  // Let puppeteer use its own bundled browser
+  return undefined;
+}
 
 let waClient = null;
 let clientStatus = "disconnected"; // disconnected | qr_pending | ready
@@ -24,6 +45,8 @@ async function initWhatsApp() {
 
   clientStatus = "initializing";
 
+  const chromiumPath = findChromiumPath();
+
   const puppeteerOpts = {
     headless: true,
     args: [
@@ -36,6 +59,10 @@ async function initWhatsApp() {
       "--single-process",
     ],
   };
+
+  if (chromiumPath) {
+    puppeteerOpts.executablePath = chromiumPath;
+  }
 
   waClient = new Client({
     authStrategy: new LocalAuth({ clientId: "chat-analyzer" }),
