@@ -1,6 +1,6 @@
-from src.parser import parse_auto
-from src.signals import extract_signals
-from src.llm_client import LLMClient
+from .parser import parse_auto
+from .signals import extract_signals
+from .llm_client import LLMClient
 
 
 def build_signals_summary(signals) -> str:

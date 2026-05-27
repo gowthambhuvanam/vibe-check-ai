@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp Chat Analyzer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>WhatsApp Chat Analyzer</h1>
+      <p class="subtitle">Understand the real nature of any conversation across 8 dimensions</p>
+    </header>
+
+    <div class="mode-tabs">
+      <button class="tab active" data-mode="qr">Real-time (Scan QR)</button>
+      <button class="tab" data-mode="export">Export File</button>
+    </div>
+
+    <!-- QR MODE -->
+    <section id="qr-mode" class="mode-section active">
+      <div id="qr-step-connect" class="step">
+        <p>Connect your WhatsApp by scanning a QR code. This works exactly like WhatsApp Web.</p>
+        <button id="btn-connect" class="btn-primary">Connect WhatsApp</button>
+      </div>
+
+      <div id="qr-step-qr" class="step hidden">
+        <p>Scan this QR code with your phone. Open WhatsApp, go to Linked Devices, then scan.</p>
+        <div class="qr-wrapper">
+          <img id="qr-image" src="" alt="QR Code" />
+        </div>
+        <p class="hint">Waiting for scan...</p>
+      </div>
+
+      <div id="qr-step-chats" class="step hidden">
+        <p class="connected-label">Connected. Select a conversation to analyze.</p>
+        <div id="chat-list" class="chat-list"></div>
+        <button id="btn-disconnect" class="btn-secondary">Disconnect</button>
+      </div>
+
+      <div id="qr-step-analyzing" class="step hidden">
+        <div class="spinner"></div>
+        <p>Analyzing conversation...</p>
+      </div>
+    </section>
+
+    <!-- EXPORT MODE -->
+    <section id="export-mode" class="mode-section hidden">
+      <div class="export-box">
+        <p>Export a chat from WhatsApp (Chat, three dots, More, Export Chat, without media). Then upload the file or paste the text below.</p>
+
+        <div class="upload-area" id="upload-area">
+          <input type="file" id="file-input" accept=".txt" hidden />
+          <p>Drop a .txt file here or <span class="link" id="upload-trigger">browse</span></p>
+          <p id="file-name" class="file-name"></p>
+        </div>
+
+        <p class="divider-text">or paste the chat text directly</p>
+
+        <textarea id="export-text" placeholder="Paste exported chat text here..."></textarea>
+
+        <div class="your-name-row">
+          <label>Your name in this chat:</label>
+          <input type="text" id="your-name-export" value="You" />
+        </div>
+
+        <button id="btn-analyze-export" class="btn-primary">Analyze Chat</button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" class="hidden">
+      <div class="results-header">
+        <div class="nature-badge" id="nature-badge">Analyzing...</div>
+        <div class="nature-tags" id="nature-tags"></div>
+      </div>
+
+      <div class="verdict-box" id="verdict-box"></div>
+
+      <div class="stats-row">
+        <div class="stat"><span id="stat-total">0</span><label>Total Messages</label></div>
+        <div class="stat"><span id="stat-them">0</span><label>Their Messages</label></div>
+        <div class="stat"><span id="stat-you">0</span><label>Your Messages</label></div>
+        <div class="stat"><span id="stat-rt-trend">-</span><label>Response Trend</label></div>
+      </div>
+
+      <div class="scores-grid" id="scores-grid"></div>
+
+      <div class="summary-section">
+        <h3>Summary</h3>
+        <p id="summary-text"></p>
+      </div>
+
+      <div class="tone-shift-section">
+        <h3>Tone Shift</h3>
+        <p id="tone-shift-text"></p>
+      </div>
+
+      <div class="flags-row">
+        <div class="flags-col">
+          <h3>Green Flags</h3>
+          <ul id="green-flags"></ul>
+        </div>
+        <div class="flags-col">
+          <h3>Red Flags</h3>
+          <ul id="red-flags"></ul>
+        </div>
+      </div>
+
+      <button id="btn-reset" class="btn-secondary">Analyze Another</button>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -4,3 +4,10 @@ __pycache__/
 .venv/
 venv/
 .streamlit/
+node_modules/
+server/node_modules/
+realtime/node_modules/
+.wwebjs_auth/
+.wwebjs_cache/
+*.log
+npm-debug.log*

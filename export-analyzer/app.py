@@ -1,7 +1,7 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from src.analyzer import analyze_conversation
+from src.analyzer import analyze_conversation  # run from export-analyzer/ directory
 
 load_dotenv()
 
