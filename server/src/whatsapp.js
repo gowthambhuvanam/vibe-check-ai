@@ -24,12 +24,18 @@ async function initWhatsApp() {
 
   clientStatus = "initializing";
 
+  const puppeteerOpts = {
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
+  };
+
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    puppeteerOpts.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+
   waClient = new Client({
     authStrategy: new LocalAuth({ clientId: "chat-analyzer" }),
-    puppeteer: {
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-    },
+    puppeteer: puppeteerOpts,
   });
 
   waClient.on("qr", async (qr) => {
