@@ -1,4 +1,4 @@
-# WhatsApp Chat Analyzer
+# Vibe Check AI
 
 Analyzes any WhatsApp conversation across 8 behavioral dimensions and gives it an honest verdict. Connects directly to WhatsApp via QR code scan for real-time analysis, or accepts an exported chat file. Runs as a web app in your browser with visual score rings, trend indicators, and a full breakdown.
 
@@ -83,8 +83,8 @@ Export any chat from WhatsApp (Chat, three dots, More, Export Chat, without medi
 Requires Node.js 18 or later.
 
 ```bash
-git clone https://github.com/gowthambhuvanam/whatsapp-chat-analyzer
-cd whatsapp-chat-analyzer/server
+git clone https://github.com/gowthambhuvanam/vibe-check-ai
+cd vibe-check-ai/server
 npm install
 cp .env.example .env
 ```
@@ -142,7 +142,7 @@ Your messages are never sent to any third-party service except the LLM API you c
 ## Project Structure
 
 ```
-whatsapp-chat-analyzer/
+vibe-check-ai/
   server/
     index.js              Express + WebSocket server, API routes
     src/
