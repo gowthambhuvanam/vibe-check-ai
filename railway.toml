@@ -6,3 +6,10 @@ buildCommand = "cd server && npm install"
 startCommand = "cd server && node index.js"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs_20", "chromium", "nss", "freetype", "harfbuzz", "glib", "dbus"]
+
+[variables]
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
+PUPPETEER_EXECUTABLE_PATH = "/run/current-system/sw/bin/chromium"
