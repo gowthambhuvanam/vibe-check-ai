@@ -1,135 +1,97 @@
-# Ghosting Probability Predictor
+# WhatsApp Chat Analyzer
 
-Analyzes chat conversations and predicts the probability of being ghosted. It detects behavioral shifts across response time patterns, message length trends, initiation ratio, and engagement signals, then runs an AI analysis to produce a probability score with specific evidence and a direct recommendation.
-
-Works as a Streamlit web app or a CLI tool. Supports plain text format and WhatsApp chat exports.
+Analyzes any WhatsApp conversation across 8 behavioral dimensions and gives it an honest verdict. Connects directly to WhatsApp via QR code scan for real-time analysis, or accepts an exported chat file. Runs as a web app in your browser with visual score rings, trend indicators, and a full breakdown.
 
 ---
 
-## The Problem It Solves
+## What It Does
 
-Everyone has experienced a conversation that slowly dies and wondered whether the other person is losing interest or just busy. The signals are real but hard to see clearly when you are in the middle of it. Response times getting longer, messages getting shorter, questions stopping, one-word replies replacing paragraphs.
-
-This tool reads those patterns objectively, quantifies them, and tells you exactly what changed and when.
+Most people can sense when a conversation is shifting, but reading it objectively is hard when you are involved in it. This tool extracts quantitative signals from the message history - response time trends, initiation ratios, message length changes, question frequency - then feeds them to an AI that scores the conversation across 8 dimensions and delivers a direct summary of what is actually happening.
 
 ---
 
 ## Real Output
 
-The following is real output from analyzing a conversation that started well and gradually declined:
+The following is real output from analyzing a conversation that started warm and became one-sided over time:
 
 ```
-Ghosting Probability: 85%
-Verdict: Already checked out
-Confidence: high
+Nature: Fading
 
-Messages analyzed: 18
-Their messages: 9 | Your messages: 9
+Verdict: Interest is dropping fast. They are still responding but putting in
+         noticeably less effort than they were two weeks ago.
 
-Tone shift:
-The tone changed from enthusiastic and engaged in early messages
-to brief and unenthusiastic in recent messages.
+Total Messages: 62    Their Messages: 31    Your Messages: 31
+Response Trend: Slowing Down
 
-What changed:
-Their response time became significantly longer and their messages
-became shorter and less engaging.
+Scores:
+  Interest Level        28   Ghosting Risk         74
+  Emotional Warmth      35   Humor / Playfulness   20
+  Conversation Balance  42   Toxicity Level         5
+  Romantic Tension      15   Friendship Depth      40
 
-Signals detected:
-  [-] Response time (high weight)
-      Average response time increased 11,939% - from 15 minutes early on
-      to 1,836 minutes (about 30 hours) in recent messages.
+Summary:
+The conversation started with genuine mutual interest and frequent back-and-forth,
+but has shifted noticeably over the last two weeks. Their messages are now shorter,
+less frequent, and rarely include questions. You are doing most of the initiation.
 
-  [-] Message length (medium weight)
-      Average message length declined 57.9% - from 9.5 words to 4.0 words.
+Tone Shift:
+Early messages were warm and playful with frequent questions from both sides.
+Recent messages are brief, reactive, and lack personal engagement.
 
-  [~] Conversation initiation (low weight)
-      They initiated 5 of 6 conversations, showing early interest.
+Green Flags:
+  + They still respond consistently
+  + No hostility or negative patterns
 
-  [-] Questions asked (medium weight)
-      They asked zero questions across 9 messages, indicating no curiosity
-      about continuing the connection.
-
-Red flags:
-  - Significant increase in response time
-  - Decline in message length and engagement
-  - No questions asked in any of their 9 messages
-
-Positive signs:
-  - They responded to all your messages
-
-Recommendation:
-It is likely they are losing interest. Consider not investing more time
-and effort into this conversation. Move on and focus on other connections.
+Red Flags:
+  - Response time increased 340% from early to recent period
+  - Message length dropped from 14 words average to 5 words average
+  - Questions dropped from 60% of their messages to 8%
+  - You initiated 8 of the last 10 conversations
 ```
 
 ---
 
-## Signals It Tracks
+## 8 Dimensions Scored
 
-| Signal | How it is measured |
-|--------|-------------------|
-| Response time trend | Average response time in first half vs second half of conversation |
-| Message length trend | Average word count per message, early vs recent |
-| Initiation ratio | Who starts new conversation threads after long gaps |
-| Question ratio | Percentage of their messages that contain a question |
-| Consecutive messages | How many times you messaged without getting a reply |
-| Tone shift | AI-detected change in enthusiasm and engagement between early and recent messages |
-
----
-
-## Usage
-
-### Streamlit web app
-
-```bash
-git clone https://github.com/gowthambhuvanam/ghosting-probability-predictor
-cd ghosting-probability-predictor
-pip install -r requirements.txt
-cp .env.example .env
-# fill in your LLM credentials in .env
-streamlit run app.py
-```
-
-Open your browser at `http://localhost:8501`, paste a conversation, and click Analyze.
-
-### CLI
-
-```bash
-python main.py --file conversation.txt
-python main.py --text "[You]: Hey\n[Them - 3 days]: Oh hey"
-python main.py --file chat.txt --json   # raw JSON output
-```
+| Dimension | What It Measures |
+|-----------|-----------------|
+| Interest Level | How engaged and curious they seem |
+| Ghosting Risk | Likelihood the conversation fades out |
+| Emotional Warmth | Affection and care in the conversation |
+| Humor and Playfulness | Jokes, banter, and lightness |
+| Conversation Balance | Whether effort is equal from both sides |
+| Toxicity Level | Presence of harmful or hostile patterns |
+| Romantic Tension | Flirty or romantic energy |
+| Friendship Depth | Depth of personal connection |
 
 ---
 
-## Conversation Format
+## Two Modes
 
-Paste in this simple format:
+### QR Code - Real-Time
 
-```
-[You]: Hey want to hang out this weekend?
-[Them - 5 min]: Sure that sounds fun!
-[You]: Saturday work?
-[Them - 3 hours]: Maybe
-[You]: Let me know
-[Them - 2 days]: Yeah
-```
+Connects to your WhatsApp the same way WhatsApp Web does. Scan the QR code with your phone, pick any conversation from the list, and get the analysis in seconds. No data leaves your machine.
 
-The time annotations (5 min, 3 hours, 2 days) are optional but improve accuracy of the response time analysis.
+### Export File
 
-WhatsApp exports are also supported. Export a chat from WhatsApp (without media), paste the full text, and the tool auto-detects the format.
+Export any chat from WhatsApp (Chat, three dots, More, Export Chat, without media). Upload the .txt file or paste the text directly.
 
 ---
 
 ## Setup
 
+Requires Node.js 18 or later.
+
 ```bash
+git clone https://github.com/gowthambhuvanam/whatsapp-chat-analyzer
+cd whatsapp-chat-analyzer/server
+npm install
 cp .env.example .env
 ```
 
 Edit `.env` with your LLM provider credentials:
 
-```
+```env
 # NVIDIA NIM
 LLM_API_KEY=nvapi-...
 LLM_BASE_URL=https://integrate.api.nvidia.com/v1
@@ -148,19 +110,62 @@ LLM_MODEL=llama-3.3-70b-versatile
 
 Works with any OpenAI-compatible API.
 
+```bash
+node index.js
+```
+
+Open http://localhost:3000 in your browser.
+
+---
+
+## How QR Mode Works
+
+The server runs a headless Chromium instance via Puppeteer using the `whatsapp-web.js` library, which implements the WhatsApp Web protocol. When you click Connect, the server generates a QR code that your phone scans to authenticate. Once connected, it reads your chat history directly from WhatsApp's servers. The connection uses the same mechanism as WhatsApp Web and your session is stored locally.
+
+Your messages are never sent to any third-party service except the LLM API you configure in `.env`, and only the signal summary (not the actual message content) is sent for analysis.
+
+---
+
+## Signals Extracted
+
+| Signal | How It Is Computed |
+|--------|-------------------|
+| Response time trend | Average response time in early half vs recent half |
+| Message length trend | Average word count, early vs recent messages |
+| Initiation ratio | Who starts new conversation threads after long gaps |
+| Question frequency | Percentage of their messages containing a question |
+| Consecutive messages | Maximum times you sent without getting a reply |
+| Message ratio | Their total message count vs yours |
+
 ---
 
 ## Project Structure
 
 ```
-ghosting-probability-predictor/
-  src/
-    parser.py       parse plain text and WhatsApp export formats
-    signals.py      extract quantitative behavioral signals
-    llm_client.py   provider-agnostic LLM client
-    analyzer.py     orchestration - combines signals and LLM analysis
-  app.py            Streamlit web interface
-  main.py           CLI entry point
-  requirements.txt
-  .env.example
+whatsapp-chat-analyzer/
+  server/
+    index.js              Express + WebSocket server, API routes
+    src/
+      whatsapp.js         WhatsApp Web client, QR flow, message fetching
+      signals.js          Quantitative signal extraction and export parser
+      analyzer.js         LLM client, prompt construction, JSON parsing
+    .env.example
+  client/
+    index.html            Single-page web app
+    style.css             Dark theme, score rings, responsive layout
+    app.js                WebSocket client, UI logic, SVG ring animation
 ```
+
+---
+
+## What Works and What Does Not
+
+The QR mode works the same as WhatsApp Web. If WhatsApp Web works on your computer, this works. The analysis quality depends on the LLM you configure. Llama 4 Maverick and GPT-4o both produce strong results. The export parser supports the standard WhatsApp .txt export format and a simple `Name: message` format with optional time annotations.
+
+Groups are excluded from the chat list because the signals are designed for two-person conversations.
+
+---
+
+## LLM Provider Compatibility
+
+Tested with NVIDIA NIM (Llama 4 Maverick), OpenAI (GPT-4o, GPT-4o mini), Groq (Llama 3.3 70B), and Anthropic Claude via a compatible proxy. The client is built on the `openai` Node.js SDK and works with any provider that offers an OpenAI-compatible chat completions endpoint.
