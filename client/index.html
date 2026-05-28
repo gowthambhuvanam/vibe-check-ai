@@ -18,6 +18,25 @@
       <button class="tab" data-mode="export">Export File</button>
     </div>
 
+    <!-- RELATIONSHIP MODAL -->
+    <div id="rel-modal" class="rel-modal hidden">
+      <div class="rel-modal-card">
+        <p class="rel-modal-label">What is your relationship with</p>
+        <p class="rel-modal-name" id="rel-modal-name"></p>
+        <div class="rel-pills" id="rel-pills-modal">
+          <button class="rel-pill active" data-value="close-friend">Close Friend</button>
+          <button class="rel-pill" data-value="romantic">Romantic Interest</button>
+          <button class="rel-pill" data-value="new-connection">New Connection</button>
+          <button class="rel-pill" data-value="colleague">Colleague / Classmate</button>
+          <button class="rel-pill" data-value="family">Family</button>
+        </div>
+        <div class="rel-modal-actions">
+          <button id="rel-modal-cancel" class="btn-secondary">Cancel</button>
+          <button id="rel-modal-confirm" class="btn-primary">Analyze</button>
+        </div>
+      </div>
+    </div>
+
     <!-- QR MODE -->
     <section id="qr-mode" class="mode-section active">
       <div id="qr-step-connect" class="step">
@@ -63,6 +82,17 @@
         <div class="your-name-row">
           <label>Your name in this chat:</label>
           <input type="text" id="your-name-export" value="You" />
+        </div>
+
+        <div class="export-rel-row">
+          <label>Relationship type</label>
+          <div class="rel-pills" id="rel-pills-export">
+            <button class="rel-pill active" data-value="close-friend">Close Friend</button>
+            <button class="rel-pill" data-value="romantic">Romantic Interest</button>
+            <button class="rel-pill" data-value="new-connection">New Connection</button>
+            <button class="rel-pill" data-value="colleague">Colleague / Classmate</button>
+            <button class="rel-pill" data-value="family">Family</button>
+          </div>
         </div>
 
         <button id="btn-analyze-export" class="btn-primary">Analyze Chat</button>

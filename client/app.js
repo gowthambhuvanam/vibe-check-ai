@@ -5,7 +5,8 @@ const $ = id => document.getElementById(id);
 // --- State ---
 let ws = null;
 let selectedChatId = null;
-
+let pendingChatId = null;
+let pendingChatName = null;
 
 // --- Tabs ---
 document.querySelectorAll(".tab").forEach(tab => {
@@ -20,6 +21,58 @@ document.querySelectorAll(".tab").forEach(tab => {
     section.classList.remove("hidden");
     section.classList.add("active");
   });
+});
+
+// --- Relationship pills ---
+function initPills(groupId) {
+  const container = $(groupId);
+  if (!container) return;
+  container.querySelectorAll(".rel-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      container.querySelectorAll(".rel-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+    });
+  });
+}
+
+function getRelationship(groupId) {
+  const container = $(groupId);
+  if (!container) return "close-friend";
+  const active = container.querySelector(".rel-pill.active");
+  return active ? active.dataset.value : "close-friend";
+}
+
+initPills("rel-pills-modal");
+initPills("rel-pills-export");
+
+// --- Relationship modal ---
+function showRelModal(chatId, chatName) {
+  pendingChatId = chatId;
+  pendingChatName = chatName;
+  $("rel-modal-name").textContent = chatName;
+  // Reset to default
+  $("rel-pills-modal").querySelectorAll(".rel-pill").forEach((p, i) => {
+    p.classList.toggle("active", i === 0);
+  });
+  $("rel-modal").classList.remove("hidden");
+}
+
+function hideRelModal() {
+  $("rel-modal").classList.add("hidden");
+  pendingChatId = null;
+  pendingChatName = null;
+}
+
+$("rel-modal-cancel").addEventListener("click", hideRelModal);
+$("rel-modal").addEventListener("click", e => {
+  if (e.target === $("rel-modal")) hideRelModal();
+});
+
+$("rel-modal-confirm").addEventListener("click", () => {
+  const chatId = pendingChatId;
+  const relationshipType = getRelationship("rel-pills-modal");
+  hideRelModal();
+  analyzeQRChat(chatId, relationshipType);
 });
 
 // --- WebSocket ---
@@ -97,23 +150,25 @@ async function loadChats() {
       </div>
       ${chat.unreadCount > 0 ? `<span class="chat-unread">${chat.unreadCount}</span>` : ""}
     `;
-    item.addEventListener("click", () => analyzeQRChat(chat.id));
+    item.addEventListener("click", () => showRelModal(chat.id, chat.name));
     list.appendChild(item);
   });
 }
 
-async function analyzeQRChat(chatId) {
+async function analyzeQRChat(chatId, relationshipType = "close-friend") {
   selectedChatId = chatId;
   showStep("qr-step-analyzing");
   try {
     const res = await fetch(`/api/whatsapp/analyze/${chatId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ yourName: "You" })
+      body: JSON.stringify({ yourName: "You", relationshipType })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     renderResults(data);
+    // Fix: restore chat list after results so Disconnect button is accessible
+    showStep("qr-step-chats");
   } catch (err) {
     alert("Analysis failed: " + err.message);
     loadChats();
@@ -122,6 +177,7 @@ async function analyzeQRChat(chatId) {
 
 $("btn-disconnect").addEventListener("click", async () => {
   await fetch("/api/whatsapp/disconnect", { method: "POST" });
+  $("results").classList.add("hidden");
   showStep("qr-step-connect");
 });
 
@@ -159,6 +215,7 @@ function setFile(file) {
 $("btn-analyze-export").addEventListener("click", async () => {
   const text = $("export-text").value.trim();
   const yourName = $("your-name-export").value.trim() || "You";
+  const relationshipType = getRelationship("rel-pills-export");
 
   if (!selectedFile && !text) {
     alert("Upload a .txt file or paste chat text.");
@@ -169,19 +226,13 @@ $("btn-analyze-export").addEventListener("click", async () => {
   $("btn-analyze-export").textContent = "Analyzing...";
 
   try {
-    let res;
-    if (selectedFile) {
-      const form = new FormData();
-      form.append("file", selectedFile);
-      form.append("yourName", yourName);
-      res = await fetch("/api/export/analyze", { method: "POST", body: form });
-    } else {
-      const form = new FormData();
-      form.append("text", text);
-      form.append("yourName", yourName);
-      res = await fetch("/api/export/analyze", { method: "POST", body: form });
-    }
+    const form = new FormData();
+    if (selectedFile) form.append("file", selectedFile);
+    else form.append("text", text);
+    form.append("yourName", yourName);
+    form.append("relationshipType", relationshipType);
 
+    const res = await fetch("/api/export/analyze", { method: "POST", body: form });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     renderResults(data);
@@ -236,7 +287,6 @@ const scoreDescriptions = {
 function renderResults(data) {
   const { scores, nature, nature_tags, summary, tone_shift, green_flags, red_flags, verdict, stats } = data;
 
-  // Nature badge
   const badge = $("nature-badge");
   const theme = natureColors[nature] || { bg: "#25d36622", color: "#25d366", border: "#25d366" };
   badge.textContent = nature;
@@ -244,14 +294,11 @@ function renderResults(data) {
   badge.style.color = theme.color;
   badge.style.border = `1px solid ${theme.border}`;
 
-  // Nature tags
   const tagsEl = $("nature-tags");
   tagsEl.innerHTML = (nature_tags || []).map(t => `<span class="nature-tag">${escapeHtml(t)}</span>`).join("");
 
-  // Verdict
   $("verdict-box").textContent = verdict || "";
 
-  // Stats
   if (stats) {
     $("stat-total").textContent = stats.totalMessages ?? "-";
     $("stat-them").textContent = stats.theirCount ?? "-";
@@ -259,7 +306,6 @@ function renderResults(data) {
     $("stat-rt-trend").textContent = formatTrend(stats.responseTimeTrend);
   }
 
-  // Score rings
   const grid = $("scores-grid");
   grid.innerHTML = "";
   const circumference = 2 * Math.PI * 27;
@@ -290,7 +336,6 @@ function renderResults(data) {
     grid.appendChild(card);
   });
 
-  // Animate rings after paint
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       grid.querySelectorAll(".fill").forEach(circle => {
@@ -299,17 +344,14 @@ function renderResults(data) {
     });
   });
 
-  // Summary & tone shift
   $("summary-text").textContent = summary || "";
   $("tone-shift-text").textContent = tone_shift || "";
 
-  // Flags
   const greenList = $("green-flags");
   const redList = $("red-flags");
   greenList.innerHTML = (green_flags || []).map(f => `<li>${escapeHtml(f)}</li>`).join("");
   redList.innerHTML = (red_flags || []).map(f => `<li>${escapeHtml(f)}</li>`).join("");
 
-  // Show results section
   $("results").classList.remove("hidden");
   $("results").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -336,5 +378,4 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// Connect WS on load to catch server-pushed events
 connectWS();

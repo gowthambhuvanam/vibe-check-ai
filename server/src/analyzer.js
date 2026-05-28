@@ -14,18 +14,30 @@ function initLLM() {
   client = new OpenAI({ apiKey, ...(baseURL ? { baseURL } : {}) });
 }
 
-async function analyzeConversation(signalsSummary, excerptEarly, excerptLate) {
+const relHints = {
+  "close-friend":   "Close friends often text infrequently - low frequency is normal, not a ghost signal. Judge by warmth and quality when they do talk.",
+  "romantic":       "Romantic context - response time, effort, and reciprocity matter a lot. One-sided effort and slow replies are significant red flags.",
+  "new-connection": "New connection - engagement and curiosity signals matter most. Low effort early on is a real warning sign.",
+  "colleague":      "Professional context - transactional messages and low emotional warmth are completely normal. Do not flag professional distance.",
+  "family":         "Family relationship - infrequent contact is normal, ghosting risk is almost always low, romantic tension must be 0.",
+};
+
+async function analyzeConversation(signalsSummary, excerptEarly, excerptLate, relationshipType = "close-friend") {
   initLLM();
 
-  const prompt = `You are an expert conversation analyst. Analyze this chat conversation data and return a JSON analysis across 8 dimensions.
+  const hint = relHints[relationshipType] || relHints["close-friend"];
+
+  const prompt = `You are an expert conversation analyst. Analyze this chat and return a JSON analysis.
+
+RELATIONSHIP CONTEXT: ${hint}
 
 QUANTITATIVE SIGNALS:
 ${signalsSummary}
 
-EARLY CONVERSATION SAMPLE (how it started):
+EARLY CONVERSATION SAMPLE:
 ${excerptEarly}
 
-RECENT CONVERSATION SAMPLE (how it is now):
+RECENT CONVERSATION SAMPLE:
 ${excerptLate}
 
 Return ONLY a JSON object with exactly this structure:
@@ -40,26 +52,26 @@ Return ONLY a JSON object with exactly this structure:
     "romantic_tension": <0-100>,
     "friendship_depth": <0-100>
   },
-  "nature": "<one label: Casual | Romantic | Toxic | Playful | Fading | One-sided | Loving | Deep | Complicated | Distant | Obsessive | Warm | Friendly | Flirty>",
+  "nature": "<Casual | Romantic | Toxic | Playful | Fading | One-sided | Loving | Deep | Complicated | Distant | Obsessive | Warm | Friendly | Flirty>",
   "nature_tags": ["tag1", "tag2", "tag3"],
-  "summary": "<2-3 sentence honest summary of what this conversation actually is>",
-  "tone_shift": "<how the tone changed from early to recent, one sentence>",
-  "green_flags": ["positive signal 1", "positive signal 2"],
-  "red_flags": ["concerning signal 1", "concerning signal 2"],
-  "verdict": "<one punchy honest sentence about the state of this conversation>"
+  "summary": "<2-3 sentence honest summary>",
+  "tone_shift": "<how tone changed from early to recent, one sentence>",
+  "green_flags": ["signal 1", "signal 2"],
+  "red_flags": ["signal 1", "signal 2"],
+  "verdict": "<one punchy honest sentence>"
 }
 
-Scoring guide:
-- interest_level: 100 = they are very engaged and curious, 0 = completely checked out
-- ghosting_risk: 100 = almost certain to ghost, 0 = zero risk
-- emotional_warmth: 100 = very affectionate and caring, 0 = cold and transactional
-- humor_playfulness: 100 = constant jokes and banter, 0 = no lightness at all
-- conversation_balance: 100 = perfectly equal effort, 0 = completely one-sided
-- toxicity_level: 100 = highly toxic, manipulative or hostile, 0 = healthy
-- romantic_tension: 100 = clearly romantic or flirty, 0 = purely platonic
-- friendship_depth: 100 = deep personal connection, 0 = surface level only
+Scoring rules - be decisive, use the full 0-100 range, do NOT cluster around 40-60:
+- interest_level: 85+ = very engaged with questions and energy. 15 or below = barely responding, one-word replies. 50 = neutral.
+- ghosting_risk: 80+ = clear signs of fading (no questions, long delays, shrinking replies). 10 or below = actively engaged, no drop-off. Adjust heavily based on relationship context.
+- emotional_warmth: 80+ = affectionate language, care shown. 10 or below = cold and purely transactional.
+- humor_playfulness: 80+ = frequent jokes and banter. 5 or below = zero humor. Most work chats score under 20.
+- conversation_balance: 80+ = both putting in equal effort. 20 or below = heavily one-sided. 50 = moderate imbalance.
+- toxicity_level: only score above 50 if there are actual hostile, manipulative, or harmful patterns. Most chats score under 20.
+- romantic_tension: only score above 40 if there is clear flirty or romantic language. Platonic chats should score under 15.
+- friendship_depth: 80+ = personal topics, vulnerability, genuine care. 15 or below = surface level only.
 
-Be direct. Base everything on actual evidence. Return ONLY the JSON, nothing else.`;
+Base all scores on real evidence from the signals and excerpts. Apply the relationship context. Return ONLY the JSON.`;
 
   const response = await client.chat.completions.create({
     model,
@@ -68,7 +80,7 @@ Be direct. Base everything on actual evidence. Return ONLY the JSON, nothing els
       { role: "user", content: prompt }
     ],
     temperature: 0.2,
-    max_tokens: 1500,
+    max_tokens: 1200,
   });
 
   let content = response.choices[0].message.content.trim();
