@@ -130,29 +130,35 @@ $("btn-connect").addEventListener("click", async () => {
 
 async function loadChats() {
   showStep("qr-step-chats");
-  const res = await fetch("/api/whatsapp/chats");
-  const data = await res.json();
   const list = $("chat-list");
-  list.innerHTML = "";
+  list.innerHTML = '<p style="color:var(--muted);font-size:13px;">Loading chats...</p>';
 
-  if (!data.chats || data.chats.length === 0) {
-    list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No conversations found.</p>';
-    return;
+  try {
+    const res = await fetch("/api/whatsapp/chats");
+    const data = await res.json();
+    list.innerHTML = "";
+
+    if (!data.chats || data.chats.length === 0) {
+      list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No conversations found. <button onclick="loadChats()" style="color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;">Refresh</button></p>';
+      return;
+    }
+
+    data.chats.forEach(chat => {
+      const item = document.createElement("div");
+      item.className = "chat-item";
+      item.innerHTML = `
+        <div>
+          <div class="chat-name">${escapeHtml(chat.name)}</div>
+          <div class="chat-preview">${escapeHtml(chat.lastMessage || "")}</div>
+        </div>
+        ${chat.unreadCount > 0 ? `<span class="chat-unread">${chat.unreadCount}</span>` : ""}
+      `;
+      item.addEventListener("click", () => showRelModal(chat.id, chat.name));
+      list.appendChild(item);
+    });
+  } catch (err) {
+    list.innerHTML = `<p style="color:var(--danger);font-size:13px;">Failed to load chats. <button onclick="loadChats()" style="color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;">Try again</button></p>`;
   }
-
-  data.chats.forEach(chat => {
-    const item = document.createElement("div");
-    item.className = "chat-item";
-    item.innerHTML = `
-      <div>
-        <div class="chat-name">${escapeHtml(chat.name)}</div>
-        <div class="chat-preview">${escapeHtml(chat.lastMessage || "")}</div>
-      </div>
-      ${chat.unreadCount > 0 ? `<span class="chat-unread">${chat.unreadCount}</span>` : ""}
-    `;
-    item.addEventListener("click", () => showRelModal(chat.id, chat.name));
-    list.appendChild(item);
-  });
 }
 
 async function analyzeQRChat(chatId, relationshipType = "close-friend") {
@@ -379,3 +385,17 @@ function escapeHtml(str) {
 }
 
 connectWS();
+
+// On load: if WhatsApp is already connected (e.g. after page refresh),
+// navigate directly to the right step without waiting for a WS event
+(async () => {
+  try {
+    const res = await fetch("/api/whatsapp/status");
+    const { status } = await res.json();
+    if (status === "ready") {
+      loadChats();
+    } else if (status === "qr_pending" || status === "initializing") {
+      showStep("qr-step-qr");
+    }
+  } catch (_) {}
+})();
