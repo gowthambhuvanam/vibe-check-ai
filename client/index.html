@@ -35,6 +35,16 @@
 
       <div id="qr-step-chats" class="step hidden">
         <p class="connected-label">Connected. Select a conversation to analyze.</p>
+        <div class="relationship-row">
+          <label>What is this relationship?</label>
+          <div class="rel-pills" id="rel-pills-qr">
+            <button class="rel-pill active" data-value="close-friend">Close Friend</button>
+            <button class="rel-pill" data-value="romantic">Romantic Interest</button>
+            <button class="rel-pill" data-value="new-connection">New Connection</button>
+            <button class="rel-pill" data-value="colleague">Colleague</button>
+            <button class="rel-pill" data-value="family">Family</button>
+          </div>
+        </div>
         <div id="chat-list" class="chat-list"></div>
         <button id="btn-disconnect" class="btn-secondary">Disconnect</button>
       </div>
@@ -63,6 +73,17 @@
         <div class="your-name-row">
           <label>Your name in this chat:</label>
           <input type="text" id="your-name-export" value="You" />
+        </div>
+
+        <div class="relationship-row">
+          <label>What is this relationship?</label>
+          <div class="rel-pills" id="rel-pills-export">
+            <button class="rel-pill active" data-value="close-friend">Close Friend</button>
+            <button class="rel-pill" data-value="romantic">Romantic Interest</button>
+            <button class="rel-pill" data-value="new-connection">New Connection</button>
+            <button class="rel-pill" data-value="colleague">Colleague</button>
+            <button class="rel-pill" data-value="family">Family</button>
+          </div>
         </div>
 
         <button id="btn-analyze-export" class="btn-primary">Analyze Chat</button>
