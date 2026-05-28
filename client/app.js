@@ -6,27 +6,6 @@ const $ = id => document.getElementById(id);
 let ws = null;
 let selectedChatId = null;
 
-// --- Relationship pills ---
-function initPills(groupId) {
-  const container = $(groupId);
-  if (!container) return;
-  container.querySelectorAll(".rel-pill").forEach(pill => {
-    pill.addEventListener("click", () => {
-      container.querySelectorAll(".rel-pill").forEach(p => p.classList.remove("active"));
-      pill.classList.add("active");
-    });
-  });
-}
-
-function getRelationship(groupId) {
-  const container = $(groupId);
-  if (!container) return "close-friend";
-  const active = container.querySelector(".rel-pill.active");
-  return active ? active.dataset.value : "close-friend";
-}
-
-initPills("rel-pills-qr");
-initPills("rel-pills-export");
 
 // --- Tabs ---
 document.querySelectorAll(".tab").forEach(tab => {
@@ -125,13 +104,12 @@ async function loadChats() {
 
 async function analyzeQRChat(chatId) {
   selectedChatId = chatId;
-  const relationshipType = getRelationship("rel-pills-qr");
   showStep("qr-step-analyzing");
   try {
     const res = await fetch(`/api/whatsapp/analyze/${chatId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ yourName: "You", relationshipType })
+      body: JSON.stringify({ yourName: "You" })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
@@ -181,7 +159,6 @@ function setFile(file) {
 $("btn-analyze-export").addEventListener("click", async () => {
   const text = $("export-text").value.trim();
   const yourName = $("your-name-export").value.trim() || "You";
-  const relationshipType = getRelationship("rel-pills-export");
 
   if (!selectedFile && !text) {
     alert("Upload a .txt file or paste chat text.");
@@ -197,13 +174,11 @@ $("btn-analyze-export").addEventListener("click", async () => {
       const form = new FormData();
       form.append("file", selectedFile);
       form.append("yourName", yourName);
-      form.append("relationshipType", relationshipType);
       res = await fetch("/api/export/analyze", { method: "POST", body: form });
     } else {
       const form = new FormData();
       form.append("text", text);
       form.append("yourName", yourName);
-      form.append("relationshipType", relationshipType);
       res = await fetch("/api/export/analyze", { method: "POST", body: form });
     }
 

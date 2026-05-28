@@ -61,7 +61,7 @@ app.get("/api/whatsapp/chats", async (req, res) => {
 app.post("/api/whatsapp/analyze/:chatId", async (req, res) => {
   try {
     const { chatId } = req.params;
-    const { yourName = "You", relationshipType = "close-friend" } = req.body;
+    const { yourName = "You" } = req.body;
 
     const messages = await getChatMessages(chatId, 80);
     if (messages.length < 4) {
@@ -70,7 +70,7 @@ app.post("/api/whatsapp/analyze/:chatId", async (req, res) => {
 
     const signals = extractSignals(messages, yourName);
     const summaryText = buildSummaryText(signals);
-    const result = await analyzeConversation(summaryText, signals.excerptEarly, signals.excerptLate, relationshipType);
+    const result = await analyzeConversation(summaryText, signals.excerptEarly, signals.excerptLate);
 
     res.json({
       ...result,
@@ -107,7 +107,6 @@ app.post("/api/export/analyze", upload.single("file"), async (req, res) => {
     }
 
     const yourName = req.body.yourName || "You";
-    const relationshipType = req.body.relationshipType || "close-friend";
     const messages = parseExportText(text, yourName);
 
     if (messages.length < 4) {
@@ -116,7 +115,7 @@ app.post("/api/export/analyze", upload.single("file"), async (req, res) => {
 
     const signals = extractSignals(messages, yourName);
     const summaryText = buildSummaryText(signals);
-    const result = await analyzeConversation(summaryText, signals.excerptEarly, signals.excerptLate, relationshipType);
+    const result = await analyzeConversation(summaryText, signals.excerptEarly, signals.excerptLate);
 
     res.json({
       ...result,
